@@ -113,7 +113,7 @@ impl TimerWorker {
     
     fn run(&mut self) {
         let m = Mutex::new(false);
-        let mut g = m.lock().unwrap();
+        let mut g = m.lock().unwrap(); // The mutex isn't poisoned, since we just made it
         
         loop {
             self.drain_request_queue();
@@ -130,7 +130,9 @@ impl TimerWorker {
             let wait_millis = self.ms_until_next_event();
             
             println!("Timer is waiting for {}!", wait_millis);
-            g = self.trigger.wait_timeout_ms(g, wait_millis).unwrap().0;
+            // unwrap() is safe because the mutex will not be poisoned, 
+            // since we have not shared it with another thread.
+            g = self.trigger.wait_timeout_ms(g, wait_millis).unwrap().0; 
             println!("Timer is done waiting");
         }
     }
@@ -145,7 +147,6 @@ lazy_static! {
             TimerWorker::new(trigger2, receiver).run();
         });
 
-        
         let interface = TimerInterface {
             trigger: trigger,
             adder: sender
@@ -158,12 +159,12 @@ lazy_static! {
 fn add_request(duration_ms: u32, periodic: bool) -> Receiver<()> {
     let (sender, receiver) = channel();
     
-    let interface = TIMER_INTERFACE.lock().unwrap();
+    let interface = TIMER_INTERFACE.lock().expect("Failed to acquire the global timer worker");
     interface.adder.send(TimerRequest{
         duration:duration_ms,
         completion_sink:sender,
         periodic: periodic
-    }).unwrap();
+    }).expect("Failed to send a request to the global timer worker");
     
     interface.trigger.notify_one();
     
