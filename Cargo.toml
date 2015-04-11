@@ -1,0 +1,8 @@
+[package]
+name = "timer"
+version = "0.0.1"
+authors = ["Peter Reid <peter.d.reid@gmail.com>"]
+
+[dependencies]
+lazy_static = "*"
+time = "*"
