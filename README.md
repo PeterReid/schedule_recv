@@ -16,6 +16,11 @@ Select to be waiting for one of several Receivers to fire.
 
 Periodic Receivers can be created using periodic_ms.
 
+    use timer::periodic_ms;
+    
+    let tick = periodic_ms(2000);
+    thread::sleep_ms(1000);
+    let tock = periodic_ms(2000);
     loop {
         tick.recv().unwrap();
         println!("Tick");
