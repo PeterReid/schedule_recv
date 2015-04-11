@@ -1,7 +1,3 @@
-#[macro_use]
-extern crate lazy_static;
-
-extern crate time;
 
 use std::collections::BinaryHeap;
 use std::sync::{Condvar, Mutex};
@@ -159,12 +155,12 @@ lazy_static! {
 fn add_request(duration_ms: u32, periodic: bool) -> Receiver<()> {
     let (sender, receiver) = channel();
     
-    let interface = TIMER_INTERFACE.lock().expect("Failed to acquire the global timer worker");
+    let interface = TIMER_INTERFACE.lock().ok().expect("Failed to acquire the global timer worker");
     interface.adder.send(TimerRequest{
         duration:duration_ms,
         completion_sink:sender,
         periodic: periodic
-    }).expect("Failed to send a request to the global timer worker");
+    }).ok().expect("Failed to send a request to the global timer worker");
     
     interface.trigger.notify_one();
     
@@ -177,33 +173,4 @@ pub fn oneshot_ms(ms: u32) -> Receiver<()> {
 
 pub fn periodic_ms(ms: u32) -> Receiver<()> {
     add_request(ms, true)
-}
-
-
-fn main() {
-    {
-        let timeout = oneshot_ms(2000);
-        // do some work
-        println!("Main waits for a timeout");
-        //timeout.recv().ok().expect("main's recv didn't work"); // wait for the timeout to expire
-        println!("Main gets a timeout!");
-    }
-    
-    //thread::sleep_ms(10000);
-    
-    
-    
-    let timeout4 = oneshot_ms(4000);
-    let timeout6 = oneshot_ms(6000);
-    timeout4.recv().ok().expect("main's recv didn't work"); // wait for the timeout to expire
-    println!("Four more seconds elapsed!");
-    timeout6.recv().ok().expect("main's recv didn't work"); // wait for the timeout to expire
-    println!("Six seconds elapsed!");
-}
-
-
-#[test]
-fn it_works() {
-
-
 }
