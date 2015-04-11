@@ -48,68 +48,84 @@ struct TimerInterface {
     adder: Sender<TimerRequest>,
 }
 
-fn timer_worker(trigger: Arc<Condvar>, source: Receiver<TimerRequest>) {
-    println!("timer_worker starting");
-    let mut schedule = BinaryHeap::new();
-    let m = Mutex::new(false);
-    let mut g = m.lock().unwrap();
-    loop {
-        let now = SteadyTime::now();
-        
-        while let Ok(request) = source.try_recv() {
-            println!("Scheduling a new timeout for {} ms from now", request.duration);
-            schedule.push(TimerEvent{
-                when: now + Duration::milliseconds(request.duration as i64),
-                period: if request.periodic { Some(request.duration) } else { None },
-                completion_sink: request.completion_sink
-            });
-        }
+struct TimerWorker {
+    trigger: Arc<Condvar>,
+    request_source: Receiver<TimerRequest>,
+    schedule: BinaryHeap<TimerEvent>,
+}
 
+impl TimerWorker {
+    fn new(trigger: Arc<Condvar>, request_source: Receiver<TimerRequest>) -> TimerWorker {
+        TimerWorker{
+            trigger: trigger,
+            request_source: request_source,
+            schedule: BinaryHeap::new(),
+        }
+    }
+
+    fn run(&mut self) {
+        let m = Mutex::new(false);
+        let mut g = m.lock().unwrap();
         
-        // Fire off as many events as we are supposed to.
         loop {
-            let ready = if let Some(evt) = schedule.peek() {
-                evt.when < now
-            } else { 
-                false
-            };
-        
-            if ready {
-                println!("Firing an event!");
-                if let Some(evt) = schedule.pop() {
-                    match evt.completion_sink.send( () ) {
-                        Ok( () ) => {
-                            println!("Send succeeded!");
-                            if let Some(period) = evt.period.clone() {
-                                schedule.push(TimerEvent{
-                                    when: now + Duration::milliseconds(period as i64),
-                                    period: evt.period,
-                                    completion_sink: evt.completion_sink,
-                                });
+            let now = SteadyTime::now();
+            
+            while let Ok(request) = self.request_source.try_recv() {
+                println!("Scheduling a new timeout for {} ms from now", request.duration);
+                self.schedule.push(TimerEvent{
+                    when: now + Duration::milliseconds(request.duration as i64),
+                    period: if request.periodic { Some(request.duration) } else { None },
+                    completion_sink: request.completion_sink
+                });
+            }
+
+            
+            // Fire off as many events as we are supposed to.
+            loop {
+                let ready = if let Some(evt) = self.schedule.peek() {
+                    evt.when < now
+                } else { 
+                    false
+                };
+            
+                if ready {
+                    println!("Firing an event!");
+                    if let Some(evt) = self.schedule.pop() {
+                        match evt.completion_sink.send( () ) {
+                            Ok( () ) => {
+                                println!("Send succeeded!");
+                                if let Some(period) = evt.period.clone() {
+                                    self.schedule.push(TimerEvent{
+                                        when: now + Duration::milliseconds(period as i64),
+                                        period: evt.period,
+                                        completion_sink: evt.completion_sink,
+                                    });
+                                }
+                            }
+                            Err(_) => {
+                                // The receiver is no longer waiting for us
                             }
                         }
-                        Err(_) => {
-                            // The receiver is no longer waiting for us
-                        }
                     }
+                } else {
+                    break;
                 }
-            } else {
-                break;
             }
+            
+            let wait_millis = 
+                if let Some(evt) = self.schedule.peek() {
+                    max(0, min((evt.when - now).num_milliseconds(), 100000))  as u32
+                } else {
+                    100000
+                };
+            
+            println!("Timer is waiting for {}!", wait_millis);
+            g = self.trigger.wait_timeout_ms(g, wait_millis).unwrap().0;
+            println!("Timer is done waiting");
         }
-        
-        let wait_millis = 
-            if let Some(evt) = schedule.peek() {
-                max(0, min((evt.when - now).num_milliseconds(), 100000))  as u32
-            } else {
-                100000
-            };
-        
-        println!("Timer is waiting for {}!", wait_millis);
-        g = trigger.wait_timeout_ms(g, wait_millis).unwrap().0;
-        println!("Timer is done waiting");
     }
 }
+
 
 lazy_static! {
     static ref TIMER_INTERFACE  : Mutex<TimerInterface> = {
@@ -117,7 +133,7 @@ lazy_static! {
         let trigger = Arc::new(Condvar::new());
         let trigger2 = trigger.clone();
         thread::spawn(move|| {
-            timer_worker(trigger2, receiver);
+            TimerWorker::new(trigger2, receiver).run();
         });
 
         
