@@ -86,7 +86,7 @@ impl TimerWorker {
                     println!("Send succeeded!");
                     if let Some(period) = evt.period.clone() {
                         self.schedule.push(TimerEvent{
-                            when: SteadyTime::now() + Duration::milliseconds(period as i64),
+                            when: evt.when + Duration::milliseconds(period as i64),
                             period: evt.period,
                             completion_sink: evt.completion_sink,
                         });
