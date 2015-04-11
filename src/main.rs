@@ -63,61 +63,71 @@ impl TimerWorker {
         }
     }
 
+    fn drain_request_queue(&mut self) {
+        while let Ok(request) = self.request_source.try_recv() {
+            println!("Scheduling a new timeout for {} ms from now", request.duration);
+            self.schedule.push(TimerEvent{
+                when: SteadyTime::now() + Duration::milliseconds(request.duration as i64),
+                period: if request.periodic { Some(request.duration) } else { None },
+                completion_sink: request.completion_sink
+            });
+        }
+    }
+    
+    fn has_event_now(&self) -> bool {
+        if let Some(evt) = self.schedule.peek() {
+            evt.when < SteadyTime::now()
+        } else { 
+            false
+        }
+    }
+    
+    fn fire_event(&mut self) {
+        println!("Firing an event!");
+        if let Some(evt) = self.schedule.pop() {
+            match evt.completion_sink.send( () ) {
+                Ok( () ) => {
+                    println!("Send succeeded!");
+                    if let Some(period) = evt.period.clone() {
+                        self.schedule.push(TimerEvent{
+                            when: SteadyTime::now() + Duration::milliseconds(period as i64),
+                            period: evt.period,
+                            completion_sink: evt.completion_sink,
+                        });
+                    }
+                }
+                Err(_) => {
+                    // The receiver is no longer waiting for us
+                }
+            }
+        }
+    }
+    
+    fn ms_until_next_event(&self) -> u32 {
+        if let Some(evt) = self.schedule.peek() {
+            max(0, min((evt.when - SteadyTime::now()).num_milliseconds(), 100000))  as u32
+        } else {
+            100000
+        }
+    }
+    
     fn run(&mut self) {
         let m = Mutex::new(false);
         let mut g = m.lock().unwrap();
         
         loop {
-            let now = SteadyTime::now();
-            
-            while let Ok(request) = self.request_source.try_recv() {
-                println!("Scheduling a new timeout for {} ms from now", request.duration);
-                self.schedule.push(TimerEvent{
-                    when: now + Duration::milliseconds(request.duration as i64),
-                    period: if request.periodic { Some(request.duration) } else { None },
-                    completion_sink: request.completion_sink
-                });
-            }
-
+            self.drain_request_queue();
             
             // Fire off as many events as we are supposed to.
             loop {
-                let ready = if let Some(evt) = self.schedule.peek() {
-                    evt.when < now
-                } else { 
-                    false
-                };
-            
-                if ready {
-                    println!("Firing an event!");
-                    if let Some(evt) = self.schedule.pop() {
-                        match evt.completion_sink.send( () ) {
-                            Ok( () ) => {
-                                println!("Send succeeded!");
-                                if let Some(period) = evt.period.clone() {
-                                    self.schedule.push(TimerEvent{
-                                        when: now + Duration::milliseconds(period as i64),
-                                        period: evt.period,
-                                        completion_sink: evt.completion_sink,
-                                    });
-                                }
-                            }
-                            Err(_) => {
-                                // The receiver is no longer waiting for us
-                            }
-                        }
-                    }
+                if self.has_event_now() {
+                    self.fire_event();
                 } else {
                     break;
                 }
             }
             
-            let wait_millis = 
-                if let Some(evt) = self.schedule.peek() {
-                    max(0, min((evt.when - now).num_milliseconds(), 100000))  as u32
-                } else {
-                    100000
-                };
+            let wait_millis = self.ms_until_next_event();
             
             println!("Timer is waiting for {}!", wait_millis);
             g = self.trigger.wait_timeout_ms(g, wait_millis).unwrap().0;
@@ -125,7 +135,6 @@ impl TimerWorker {
         }
     }
 }
-
 
 lazy_static! {
     static ref TIMER_INTERFACE  : Mutex<TimerInterface> = {
