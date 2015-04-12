@@ -8,51 +8,51 @@ use std::cmp::{Ordering, min, max};
 
 use time::{SteadyTime, Duration};
 
-struct TimerEvent {
+struct ScheduledEvent {
     when: SteadyTime,
     completion_sink: Sender<()>,
     period: Option<u32>,
 }
-impl Ord for TimerEvent {
-    fn cmp(&self, other: &TimerEvent) -> Ordering {
+impl Ord for ScheduledEvent {
+    fn cmp(&self, other: &ScheduledEvent) -> Ordering {
         other.when.cmp(&self.when)
     }
 }
-impl PartialEq for TimerEvent {
-    fn eq(&self, other: &TimerEvent) -> bool {
-        let self_ptr: *const TimerEvent = self;
-        let other_ptr: *const TimerEvent = other;
+impl PartialEq for ScheduledEvent {
+    fn eq(&self, other: &ScheduledEvent) -> bool {
+        let self_ptr: *const ScheduledEvent = self;
+        let other_ptr: *const ScheduledEvent = other;
 
         self_ptr == other_ptr
     }
 }
-impl Eq for TimerEvent {}
-impl PartialOrd for TimerEvent {
-    fn partial_cmp(&self, other: &TimerEvent) -> Option<Ordering> {
+impl Eq for ScheduledEvent {}
+impl PartialOrd for ScheduledEvent {
+    fn partial_cmp(&self, other: &ScheduledEvent) -> Option<Ordering> {
         other.when.partial_cmp(&self.when)
     }
 }
 
-struct TimerRequest {
+struct SchedulingRequest {
     duration: u32,
     periodic: bool,
     completion_sink: Sender<()>,
 }
 
-struct TimerInterface {
+struct SchedulingInterface {
     trigger: Arc<Condvar>,
-    adder: Sender<TimerRequest>,
+    adder: Sender<SchedulingRequest>,
 }
 
-struct TimerWorker {
+struct ScheduleWorker {
     trigger: Arc<Condvar>,
-    request_source: Receiver<TimerRequest>,
-    schedule: BinaryHeap<TimerEvent>,
+    request_source: Receiver<SchedulingRequest>,
+    schedule: BinaryHeap<ScheduledEvent>,
 }
 
-impl TimerWorker {
-    fn new(trigger: Arc<Condvar>, request_source: Receiver<TimerRequest>) -> TimerWorker {
-        TimerWorker{
+impl ScheduleWorker {
+    fn new(trigger: Arc<Condvar>, request_source: Receiver<SchedulingRequest>) -> ScheduleWorker {
+        ScheduleWorker{
             trigger: trigger,
             request_source: request_source,
             schedule: BinaryHeap::new(),
@@ -61,7 +61,7 @@ impl TimerWorker {
 
     fn drain_request_queue(&mut self) {
         while let Ok(request) = self.request_source.try_recv() {
-            self.schedule.push(TimerEvent{
+            self.schedule.push(ScheduledEvent{
                 when: SteadyTime::now() + Duration::milliseconds(request.duration as i64),
                 period: if request.periodic { Some(request.duration) } else { None },
                 completion_sink: request.completion_sink
@@ -82,7 +82,7 @@ impl TimerWorker {
             match evt.completion_sink.send( () ) {
                 Ok( () ) => {
                     if let Some(period) = evt.period.clone() {
-                        self.schedule.push(TimerEvent{
+                        self.schedule.push(ScheduledEvent{
                             when: evt.when + Duration::milliseconds(period as i64),
                             period: evt.period,
                             completion_sink: evt.completion_sink,
@@ -130,15 +130,15 @@ impl TimerWorker {
 }
 
 lazy_static! {
-    static ref TIMER_INTERFACE  : Mutex<TimerInterface> = {
+    static ref SCHEDULER_INTERFACE  : Mutex<SchedulingInterface> = {
         let (sender, receiver) = channel();
         let trigger = Arc::new(Condvar::new());
         let trigger2 = trigger.clone();
         thread::spawn(move|| {
-            TimerWorker::new(trigger2, receiver).run();
+            ScheduleWorker::new(trigger2, receiver).run();
         });
 
-        let interface = TimerInterface {
+        let interface = SchedulingInterface {
             trigger: trigger,
             adder: sender
         };
@@ -150,12 +150,12 @@ lazy_static! {
 fn add_request(duration_ms: u32, periodic: bool) -> Receiver<()> {
     let (sender, receiver) = channel();
 
-    let interface = TIMER_INTERFACE.lock().ok().expect("Failed to acquire the global timer worker");
-    interface.adder.send(TimerRequest{
+    let interface = SCHEDULER_INTERFACE.lock().ok().expect("Failed to acquire the global scheduling worker");
+    interface.adder.send(SchedulingRequest{
         duration:duration_ms,
         completion_sink:sender,
         periodic: periodic
-    }).ok().expect("Failed to send a request to the global timer worker");
+    }).ok().expect("Failed to send a request to the global scheduling worker");
 
     interface.trigger.notify_one();
 

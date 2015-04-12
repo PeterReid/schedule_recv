@@ -1,5 +1,5 @@
 [package]
-name = "timer"
+name = "schedule_recv"
 version = "0.0.1"
 authors = ["Peter Reid <peter.d.reid@gmail.com>"]
 

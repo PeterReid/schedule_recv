@@ -1,5 +1,5 @@
 
-use timer::{oneshot_ms, periodic_ms};
+use scheduler::{oneshot_ms, periodic_ms};
 use time::SteadyTime;
 
 struct ElapsedChecker {

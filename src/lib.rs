@@ -19,7 +19,7 @@
 /// Select to be waiting for one of several Receivers to fire.
 ///
 /// ```
-/// # use timer::oneshot_ms;
+/// # use schedule_recv::oneshot_ms;
 /// # fn sleep_equivalent() {
 /// let timer = oneshot_ms(1500);
 /// timer.recv().unwrap();
@@ -30,7 +30,7 @@
 /// Periodic Receivers can be created using periodic_ms.
 ///
 /// ```
-/// # use timer::periodic_ms;
+/// # use schedule_recv::periodic_ms;
 /// # use std::thread;
 /// # fn tick_tock() {
 /// let tick = periodic_ms(2000);
@@ -50,8 +50,8 @@
 #[macro_use] extern crate lazy_static;
 extern crate time;
 
-mod timer;
+mod scheduler;
 
 #[cfg(test)] mod test;
 
-pub use timer::{oneshot_ms, periodic_ms};
+pub use scheduler::{oneshot_ms, periodic_ms};
