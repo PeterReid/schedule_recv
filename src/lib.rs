@@ -8,7 +8,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-/// This module exposes functionality to create receivers that
+/// This crate exposes functionality to create receivers that
 /// receive notifications after a specified period of time or at
 /// a specified frequency.
 ///
