@@ -162,10 +162,14 @@ fn add_request(duration_ms: u32, periodic: bool) -> Receiver<()> {
     receiver
 }
 
+/// Starts a timer which after `ms` milliseconds will issue a **single** `.send(())` on the other side of the
+/// returned `Reciever<()>`.
 pub fn oneshot_ms(ms: u32) -> Receiver<()> {
     add_request(ms, false)
 }
 
+/// Starts a timer which, **every** `ms` milliseconds, will issue `.send(())` on the other side of the
+/// returned `Reciever<()>`.
 pub fn periodic_ms(ms: u32) -> Receiver<()> {
     add_request(ms, true)
 }
