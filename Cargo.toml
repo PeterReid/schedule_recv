@@ -1,7 +1,19 @@
 [package]
 name = "schedule_recv"
 version = "0.0.1"
-authors = ["Peter Reid <peter.d.reid@gmail.com>"]
+authors = [
+  "Peter Reid <peter.d.reid@gmail.com>",
+  "Andrew Hobden <andrew@hoverbear.org>"
+]
+license = "MIT"
+readme = "README.md"
+description = """
+Create delayed and periodic Receivers
+"""
+repository = "https://github.com/PeterReid/schedule_recv"
+homepage = "https://github.com/PeterReid/schedule_recv"
+documentation = "https://PeterReid.github.io/schedule_recv"
+keywords = ["schedule_recv", "timer"]
 
 [dependencies]
 lazy_static = "*"
