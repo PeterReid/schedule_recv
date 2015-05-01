@@ -1,0 +1,3 @@
+var searchIndex = {};
+searchIndex['schedule_recv'] = {"items":[[0,"","schedule_recv","This crate exposes functionality to create receivers that\nreceive notifications after a specified period of time or at\na specified frequency.",null,null],[5,"oneshot_ms","","Starts a timer which after `ms` milliseconds will issue a **single** `.send(())` on the other side of the\nreturned `Reciever<()>`.",null,{"inputs":[{"name":"u32"}],"output":{"name":"receiver"}}],[5,"periodic_ms","","Starts a timer which, **every** `ms` milliseconds, will issue `.send(())` on the other side of the\nreturned `Reciever<()>`.",null,{"inputs":[{"name":"u32"}],"output":{"name":"receiver"}}]],"paths":[]};
+initSearch(searchIndex);

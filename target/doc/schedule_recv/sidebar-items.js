@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["oneshot_ms","Starts a timer which after `ms` milliseconds will issue a **single** `.send(())` on the other side of the returned `Reciever<()>`."],["periodic_ms","Starts a timer which, **every** `ms` milliseconds, will issue `.send(())` on the other side of the returned `Reciever<()>`."]]});

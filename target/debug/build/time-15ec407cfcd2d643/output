@@ -1,0 +1,41 @@
+TARGET = Some("x86_64-pc-windows-gnu")
+CARGO_MANIFEST_DIR = Some("C:\\Users\\J\\.cargo\\registry\\src\\github.com-1ecc6299db9ec823\\time-0.1.24")
+OUT_DIR = Some("C:\\code\\schedule_recv\\target\\debug\\build\\time-15ec407cfcd2d643\\out")
+TARGET = Some("x86_64-pc-windows-gnu")
+OPT_LEVEL = Some("0")
+PROFILE = Some("debug")
+debug 0
+TARGET = Some("x86_64-pc-windows-gnu")
+HOST = Some("x86_64-pc-windows-gnu")
+CC_x86_64-pc-windows-gnu = None
+CC_x86_64_pc_windows_gnu = None
+HOST_CC = None
+CC = None
+TARGET = Some("x86_64-pc-windows-gnu")
+HOST = Some("x86_64-pc-windows-gnu")
+CFLAGS_x86_64-pc-windows-gnu = None
+CFLAGS_x86_64_pc_windows_gnu = None
+HOST_CFLAGS = None
+CFLAGS = None
+TARGET = Some("x86_64-pc-windows-gnu")
+HOST = Some("x86_64-pc-windows-gnu")
+CC_x86_64-pc-windows-gnu = None
+CC_x86_64_pc_windows_gnu = None
+HOST_CC = None
+CC = None
+running: "gcc" "-O0" "-c" "-ffunction-sections" "-fdata-sections" "-mwin32" "-m64" "-fPIC" "C:\Users\J\.cargo\registry\src\github.com-1ecc6299db9ec823\time-0.1.24\src/time_helpers.c" "-o" "C:\code\schedule_recv\target\debug\build\time-15ec407cfcd2d643\out\src\time_helpers.o"
+TARGET = Some("x86_64-pc-windows-gnu")
+HOST = Some("x86_64-pc-windows-gnu")
+AR_x86_64-pc-windows-gnu = None
+AR_x86_64_pc_windows_gnu = None
+HOST_AR = None
+AR = None
+TARGET = Some("x86_64-pc-windows-gnu")
+HOST = Some("x86_64-pc-windows-gnu")
+AR_x86_64-pc-windows-gnu = None
+AR_x86_64_pc_windows_gnu = None
+HOST_AR = None
+AR = None
+running: "ar" "crus" "C:\code\schedule_recv\target\debug\build\time-15ec407cfcd2d643\out\libtime_helpers.a" "C:\code\schedule_recv\target\debug\build\time-15ec407cfcd2d643\out\src\time_helpers.o"
+cargo:rustc-link-search=native=C:\code\schedule_recv\target\debug\build\time-15ec407cfcd2d643\out
+cargo:rustc-link-lib=static=time_helpers
