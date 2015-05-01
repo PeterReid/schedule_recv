@@ -2,6 +2,8 @@ This module exposes functionality to create receivers that
 receive notifications after a specified period of time or at
 a specified frequency.
 
+[![Build status](https://api.travis-ci.org/PeterReid/schedule_recv.png)](https://travis-ci.org/PeterReid/schedule_recv)
+
 # Examples
 
 At its simplest, oneshot_ms can be used to put the thread to
