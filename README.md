@@ -8,22 +8,26 @@ At its simplest, oneshot_ms can be used to put the thread to
 sleep. Unlike with std::thread::sleep, this could be used with
 Select to be waiting for one of several Receivers to fire.
 
-    use timer::oneshot_ms;
+```rust
+use timer::oneshot_ms;
 
-    let timer = oneshot_ms(1500);
-    timer.recv().unwrap();
-    println!("1.5 seconds have elapsed.");
+let timer = oneshot_ms(1500);
+timer.recv().unwrap();
+println!("1.5 seconds have elapsed.");
+```
 
 Periodic Receivers can be created using periodic_ms.
 
-    use timer::periodic_ms;
-    
-    let tick = periodic_ms(2000);
-    thread::sleep_ms(1000);
-    let tock = periodic_ms(2000);
-    loop {
-        tick.recv().unwrap();
-        println!("Tick");
-        tock.recv().unwrap();
-        println!("Tock");
-    }
+```rust
+use timer::periodic_ms;
+
+let tick = periodic_ms(2000);
+thread::sleep_ms(1000);
+let tock = periodic_ms(2000);
+loop {
+    tick.recv().unwrap();
+    println!("Tick");
+    tock.recv().unwrap();
+    println!("Tock");
+}
+```
