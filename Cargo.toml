@@ -17,4 +17,4 @@ documentation = "https://PeterReid.github.io/schedule_recv"
 keywords = ["schedule_recv", "timer"]
 
 [dependencies]
-lazy_static = "*"
+lazy_static = "^0.2"
