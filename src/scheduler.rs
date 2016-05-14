@@ -178,6 +178,8 @@ pub fn periodic(duration: Duration) -> Receiver<()> {
     add_request(duration, Some(duration))
 }
 
+/// Starts a timer which, **every** `duration` **after** an initial delay of `start`, will issue `.send(())` 
+/// on the other side of the returned `Reciever<()>`.
 pub fn periodic_after(period: Duration, start: Duration) -> Receiver<()> {
     add_request(start, Some(period))
 }
