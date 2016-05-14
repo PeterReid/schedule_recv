@@ -38,10 +38,9 @@
 
 
 #[macro_use] extern crate lazy_static;
-extern crate time;
 
 mod scheduler;
 
 #[cfg(test)] mod test;
 
-pub use scheduler::{oneshot_ms, periodic_ms};
+pub use scheduler::{oneshot_ms, periodic_ms, oneshot, periodic, periodic_after};

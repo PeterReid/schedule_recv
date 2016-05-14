@@ -1,22 +1,25 @@
 
+use std::time::{Instant, Duration};
+
 use scheduler::{oneshot_ms, periodic_ms};
-use time::SteadyTime;
 
 struct ElapsedChecker {
-    start: SteadyTime
+    start: Instant
 }
 
 impl ElapsedChecker {
     fn new() -> ElapsedChecker {
         ElapsedChecker {
-            start: SteadyTime::now()
+            start: Instant::now()
         }
     }
 
-    fn check(&self, expected_ms: i64) {
-        let actual_elapsed_ms = (SteadyTime::now() - self.start).num_milliseconds();
-        assert!(actual_elapsed_ms-100 < expected_ms, "Elapsed too late: {}ms instead of {}ms", actual_elapsed_ms, expected_ms);
-        assert!(actual_elapsed_ms+100 > expected_ms, "Elapsed too soon: {}ms instead of {}ms", actual_elapsed_ms, expected_ms);
+    fn check(&self, expected_ms: u64) {
+        let actual_elapsed = self.start.elapsed();
+        let expected = Duration::from_millis(expected_ms);
+        assert!(actual_elapsed > Duration::from_millis(100), "Less than 100ms elapsed");
+        assert!(actual_elapsed-Duration::from_millis(100) < expected, "Elapsed too late: {:?} instead of {:?}", actual_elapsed, expected);
+        assert!(actual_elapsed+Duration::from_millis(100) > expected, "Elapsed too soon: {:?} instead of {:?}", actual_elapsed, expected);
     }
 }
 
@@ -69,7 +72,7 @@ fn simple_periodic() {
     let checker = ElapsedChecker::new();
     let p = periodic_ms(200);
 
-    for i in (1..10) {
+    for i in 1..10 {
         p.recv().unwrap();
         checker.check(i*200);
     }

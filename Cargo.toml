@@ -17,4 +17,3 @@ keywords = ["schedule_recv", "timer"]
 
 [dependencies]
 lazy_static = "*"
-time = "*"
