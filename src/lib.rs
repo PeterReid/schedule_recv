@@ -9,9 +9,10 @@
 //! Select to be waiting for one of several Receivers to fire.
 //!
 //! ```
-//! # use schedule_recv::oneshot_ms;
+//! # use schedule_recv::oneshot;
+//! # use std::time::Duration;
 //! # fn sleep_equivalent() {
-//! let timer = oneshot_ms(1500);
+//! let timer = oneshot(Duration::from_millis(1500));
 //! timer.recv().unwrap();
 //! println!("1.5 seconds have elapsed.");
 //! # }
@@ -20,12 +21,13 @@
 //! Periodic Receivers can be created using periodic_ms.
 //!
 //! ```
-//! # use schedule_recv::periodic_ms;
+//! # use schedule_recv::periodic;
 //! # use std::thread;
+//! # use std::time::Duration;
 //! # fn tick_tock() {
-//! let tick = periodic_ms(2000);
+//! let tick = periodic(Duration::from_millis(2000));
 //! thread::sleep_ms(1000);
-//! let tock = periodic_ms(2000);
+//! let tock = periodic(Duration::from_millis(2000));
 //!
 //! loop {
 //!     tick.recv().unwrap();
