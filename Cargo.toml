@@ -1,9 +1,10 @@
 [package]
 name = "schedule_recv"
-version = "0.0.1"
+version = "0.1.0"
 authors = [
   "Peter Reid <peter.d.reid@gmail.com>",
-  "Andrew Hobden <andrew@hoverbear.org>"
+  "Andrew Hobden <andrew@hoverbear.org>",
+  "Demur Rumed <unkmute@hotmail.com>"
 ]
 license = "MIT"
 readme = "README.md"
