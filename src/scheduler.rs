@@ -68,18 +68,13 @@ impl ScheduleWorker {
 
     fn fire_event(&mut self) {
         if let Some(evt) = self.schedule.pop() {
-            match evt.completion_sink.send( () ) {
-                Ok( () ) => {
-                    if let Some(period) = evt.period {
-                        self.schedule.push(ScheduledEvent{
-                            when: evt.when + period,
-                            period: evt.period,
-                            completion_sink: evt.completion_sink,
-                        });
-                    }
-                }
-                Err(_) => {
-                    // The receiver is no longer waiting for us
+            if evt.completion_sink.send( () ).is_ok() {
+                if let Some(period) = evt.period {
+                    self.schedule.push(ScheduledEvent{
+                        when: evt.when + period,
+                        period: evt.period,
+                        completion_sink: evt.completion_sink,
+                    });
                 }
             }
         }
@@ -97,7 +92,7 @@ impl ScheduleWorker {
     }
 
     fn run(&mut self) {
-        let m = Mutex::new(false);
+        let m = Mutex::new( () );
         let mut g = m.lock().unwrap(); // The mutex isn't poisoned, since we just made it
 
         loop {
@@ -142,12 +137,12 @@ lazy_static! {
 fn add_request(duration: Duration, period: Option<Duration>) -> Receiver<()> {
     let (sender, receiver) = channel();
 
-    let interface = SCHEDULER_INTERFACE.lock().ok().expect("Failed to acquire the global scheduling worker");
+    let interface = SCHEDULER_INTERFACE.lock().expect("Failed to acquire the global scheduling worker");
     interface.adder.send(ScheduledEvent {
         when: Instant::now() + duration,
         completion_sink: sender,
         period: period
-    }).ok().expect("Failed to send a request to the global scheduling worker");
+    }).expect("Failed to send a request to the global scheduling worker");
 
     interface.trigger.notify_one();
 
@@ -178,7 +173,7 @@ pub fn periodic(duration: Duration) -> Receiver<()> {
     add_request(duration, Some(duration))
 }
 
-/// Starts a timer which, **every** `duration` **after** an initial delay of `start`, will issue `.send(())` 
+/// Starts a timer which, **every** `duration` **after** an initial delay of `start`, will issue `.send(())`
 /// on the other side of the returned `Reciever<()>`.
 pub fn periodic_after(period: Duration, start: Duration) -> Receiver<()> {
     add_request(start, Some(period))
