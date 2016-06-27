@@ -4,8 +4,8 @@
 //!
 //! # Examples
 //!
-//! At its simplest, oneshot_ms can be used to put the thread to
-//! sleep. Unlike with std::thread::sleep, this could be used with
+//! At its simplest, `oneshot_ms` can be used to put the thread to
+//! sleep. Unlike with `std::thread::sleep`, this could be used with
 //! Select to be waiting for one of several Receivers to fire.
 //!
 //! ```
@@ -18,7 +18,7 @@
 //! # }
 //! ```
 //!
-//! Periodic Receivers can be created using periodic_ms.
+//! Periodic Receivers can be created using `periodic_ms`.
 //!
 //! ```
 //! # use schedule_recv::periodic;
