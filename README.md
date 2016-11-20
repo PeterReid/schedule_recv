@@ -3,6 +3,7 @@ receive notifications after a specified period of time or at
 a specified frequency.
 
 [![Build status](https://api.travis-ci.org/PeterReid/schedule_recv.png)](https://travis-ci.org/PeterReid/schedule_recv)
+![crates.io](https://img.shields.io/crates/v/schedule_recv.svg)
 
 [Documentation](https://PeterReid.github.io/schedule_recv)
 
