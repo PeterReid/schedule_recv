@@ -13,17 +13,17 @@ sleep. Unlike with std::thread::sleep, this could be used with
 Select to be waiting for one of several Receivers to fire.
 
 ```rust
-use timer::oneshot_ms;
+use schedule_recv::oneshot_ms;
 
 let timer = oneshot_ms(1500);
 timer.recv().unwrap();
 println!("1.5 seconds have elapsed.");
 ```
 
-Periodic Receivers can be created using periodic_ms.
+Periodic Receivers can be created using `periodic_ms`.
 
 ```rust
-use timer::periodic_ms;
+use schedule_recv::periodic_ms;
 
 let tick = periodic_ms(2000);
 thread::sleep_ms(1000);
